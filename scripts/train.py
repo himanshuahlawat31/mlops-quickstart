@@ -6,20 +6,18 @@ import os
 import numpy as np
 import pandas as pd
 
-import keras
-from keras import models 
-from keras import layers
-from keras import optimizers
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
-from keras.layers import Embedding, Flatten, Dense
-
 import azureml.core
 from azureml.core import Run
 from azureml.core.dataset import Dataset
 from azureml.core.datastore import Datastore
 from azureml.core.model import Model
+
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+import xgboost as xgb
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
+import joblib
 
 print("Executing train.py")
 print("As a data scientist, this is where I write my training code.")
@@ -204,32 +202,14 @@ print("Applying GloVe vectors completed.")
 #
 #-------------------------------------------------------------------
 
-# Use Keras to define the structure of the deep neural network   
-print("Creating model structure...")
-
-model = Sequential()
-model.add(Embedding(max_words, embedding_dim, input_length=embedding_dim))
-model.add(Flatten())
-model.add(Dense(64, activation='relu'))
-model.add(Dense(32, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-model.summary()
-
-# fix the weights for the first layer to those provided by the embedding matrix
-model.layers[0].set_weights([embedding_matrix])
-model.layers[0].trainable = False
-print("Creating model structure completed.")
-
-opt = optimizers.RMSprop(lr=0.1)
-
 print("Training model...")
-model.compile(optimizer=opt,
-              loss='binary_crossentropy',
-              metrics=['acc'])
-history = model.fit(x_train, y_train,
-                    epochs=3, 
-                    batch_size=32,
-                    validation_data=(x_val, y_val))
+
+model = xgb.XGBClassifier(objective ="binary:logistic",  learning_rate = 0.1,
+                max_depth = 5, n_estimators = 10)
+
+
+model.fit(x_train, y_train)
+
 print("Training model completed.")
 
 print("Saving model files...")
@@ -237,7 +217,9 @@ print("Saving model files...")
 # files saved in the "./outputs" folder are automatically uploaded into run history
 os.makedirs('./outputs/model', exist_ok=True)
 # save model
-model.save('./outputs/model/model.h5')
+joblib.dump(value=model, filename='./outputs/model/model.h5')
+
+# model.save('./outputs/model/model.h5')
 print("model saved in ./outputs/model folder")
 print("Saving model files completed.")
 
@@ -247,13 +229,11 @@ print("Saving model files completed.")
 #
 #-------------------------------------------------------------------
 
-print('Model evaluation will print the following metrics: ', model.metrics_names)
-evaluation_metrics = model.evaluate(x_test, y_test)
-print(evaluation_metrics)
-
 run = Run.get_context()
-run.log(model.metrics_names[0], evaluation_metrics[0], 'Model test data loss')
-run.log(model.metrics_names[1], evaluation_metrics[1], 'Model test data accuracy')
+y_pred = model.predict(x_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+run.log('acc', accuracy, 'Model test data accuracy')
 
 #-------------------------------------------------------------------
 #
@@ -265,7 +245,7 @@ os.chdir("./outputs/model")
 
 # The registered model references the data set used to provide its training data
 
-model_description = 'Deep learning model to classify the descriptions of car components as compliant or non-compliant.'
+model_description = 'XGBboost model to classify the descriptions of car components as compliant or non-compliant.'
 model = Model.register(
     model_path='model.h5',  # this points to a local file
     model_name=args.model_name,  # this is the name the model is registered as

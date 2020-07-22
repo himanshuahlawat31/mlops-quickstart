@@ -1,6 +1,7 @@
 import argparse
+import os
 import azureml.core
-from azureml.core import Workspace, Experiment, Run, Datastore
+from azureml.core import Workspace, Experiment, Datastore
 from azureml.data.azure_storage_datastore import AzureBlobDatastore
 from azureml.core.compute import AmlCompute
 from azureml.core.compute import ComputeTarget
@@ -11,6 +12,7 @@ from azureml.data.data_reference import DataReference
 from azureml.pipeline.core import Pipeline, PipelineData
 from azureml.pipeline.steps import PythonScriptStep
 from azureml.core.authentication import AzureCliAuthentication
+from azureml.pipeline.core import PipelineRun, StepRun, PortDataReference
 
 print("In piplines_master.py")
 print("Pipeline SDK-specific imports completed")
@@ -65,10 +67,12 @@ run_amlcompute.auto_prepare_environment = True
 run_amlcompute.environment.python.conda_dependencies = CondaDependencies.create(pip_packages=[
     'numpy',
     'pandas',
-    'tensorflow==2.0.0',
-    'keras==2.3.1',
     'azureml-sdk',
-    'azureml-dataprep[pandas]'
+    'azureml-dataprep[pandas]',
+    'xgboost',
+    'scikit-learn',
+    'keras',
+    'tensorflow'
 ])
 
 scripts_folder = 'scripts'
@@ -107,24 +111,23 @@ print("evaluateStep created")
 
 evaluateStep.run_after(trainStep)
 steps = [evaluateStep]
-
 pipeline = Pipeline(workspace=ws, steps=steps)
 print ("Pipeline is built")
 
 pipeline.validate()
 print("Simple validation complete")
 
-run = Run.get_context()
-experiment_name = run.experiment.name
-
-pipeline_run = Experiment(ws, experiment_name).submit(pipeline)
+pipeline_exp = Experiment(ws, 'quick-starts-mlops')
+pipeline_run = pipeline_exp.submit(pipeline)
 print("Pipeline is submitted for execution")
 
 pipeline_run.wait_for_completion(show_output=True, timeout_seconds=43200)
 
 print("Downloading evaluation results...")
 # access the evaluate_output
-data = pipeline_run.find_step_run('evaluate')[0].get_output_data('evaluate_output')
+step_run = pipeline_run.find_step_run("evaluate")[0]
+data = step_run.get_output_data("evaluate_output")
+
 # download the predictions to local path
 data.download('.', show_progress=True)
 
