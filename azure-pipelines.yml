@@ -5,8 +5,8 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  resourcegroup: 'Quick-Starts-XXXXX'
-  workspace: 'quick-starts-ws-XXXXX'
+  resourcegroup: 'Your resource group name'
+  workspace: 'Your AML workspace name'
   experiment: 'quick-starts-mlops'
   aml_compute_target: 'gpucluster'
   model_name: 'compliance-classifier'
