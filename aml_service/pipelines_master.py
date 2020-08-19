@@ -69,6 +69,9 @@ run_amlcompute.environment.python.conda_dependencies = CondaDependencies.create(
     'pandas==1.1.0',
     'tensorflow==2.0.0',
     'keras==2.3.1',
+    'xgboost==1.1.1',
+    'scikit-learn==0.23.1',
+    'keras==2.3.1',
     'azureml-sdk==1.11.0',
     'azureml-dataprep[pandas]==2.0.7'
 ])
