@@ -81,7 +81,7 @@ if aks_name in compute_list:
     
 if aks_target == None:
     print("No AKS found. Creating new Aks: {} and AKS Webservice: {}".format(aks_name, aks_service_name))
-    prov_config = AksCompute.provisioning_configuration(location=aks_region)
+    prov_config = AksCompute.provisioning_configuration(location=aks_region, agent_count = 2, cluster_purpose='DevTest', vm_size='STANDARD_D2_v3')
     # Create the cluster
     aks_target = ComputeTarget.create(workspace=ws, name=aks_name, provisioning_configuration=prov_config)
     aks_target.wait_for_completion(show_output=True)
