@@ -119,7 +119,7 @@ with open('score_fixed.py', "w") as f:
 
 # create a Conda dependencies environment file
 print("Creating conda dependencies file locally...")
-conda_packages = ['numpy==1.19.1']
+conda_packages = ['numpy==1.19.1', "pip==19.2.3"]
 pip_packages = ['azureml-sdk==1.12.0', 'azureml-defaults==1.12.0', 'azureml-monitoring==0.1.0a21' ,'xgboost==1.1.1', 'scikit-learn==0.23.1', 'keras==2.3.1', 'tensorflow==2.0.0']
 mycondaenv = CondaDependencies.create(conda_packages=conda_packages, pip_packages=pip_packages)
 
