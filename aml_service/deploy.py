@@ -8,6 +8,15 @@ from azureml.core.authentication import AzureCliAuthentication
 import json
 import os, sys
 
+from azureml.core.model import InferenceConfig
+
+from azureml.core import Environment
+from azureml.core.conda_dependencies import CondaDependencies 
+from azureml.core.model import Model
+from azureml.core.webservice import AciWebservice
+from azureml.core.webservice import Webservice
+from azureml.core.image import ContainerImage
+
 print("In deploy.py")
 print("Azure Python SDK version: ", azureml.core.VERSION)
 
@@ -30,8 +39,8 @@ model_path = eval_info["model_path"]
 model_acc = eval_info["model_acc"]
 deployed_model_acc = eval_info["deployed_model_acc"]
 deploy_model = eval_info["deploy_model"]
-image_name = eval_info["image_name"]
-image_id = eval_info["image_id"]
+# image_name = eval_info["image_name"]
+# image_id = eval_info["image_id"]
 
 if deploy_model == False:
     print('Model metric did not meet the metric threshold criteria and will not be deployed!')
@@ -60,7 +69,7 @@ print('get workspace...')
 ws = Workspace.from_config(auth=cli_auth)
 print('done getting workspace!')
 
-image = Image(ws, id = image_id)
+#image = Image(ws, id = image_id)
 print(image)
 
 aks_name = args.aks_name 
@@ -90,15 +99,45 @@ if aks_target == None:
     
 print("Creating new webservice")
 # Create the web service configuration (using defaults)
-aks_config = AksWebservice.deploy_configuration(description = args.description, 
-                                                tags = {'name': aks_name, 'image_id': image.id})
-service = Webservice.deploy_from_image(
-    workspace=ws,
-    name=aks_service_name,
-    image=image,
-    deployment_config=aks_config,
-    deployment_target=aks_target
-)
+# aks_config = AksWebservice.deploy_configuration(description = args.description, 
+#                                                 tags = {'name': aks_name, 'image_id': image.id})
+# service = Webservice.deploy_from_image(
+#     workspace=ws,
+#     name=aks_service_name,
+#     image=image,
+#     deployment_config=aks_config,
+#     deployment_target=aks_target
+# )
+
+score_path = 'score_fixed.py'
+print('Updating scoring file with the correct model name')
+with open('aml_service/score.py') as f:
+    data = f.read()
+with open('score_fixed.py', "w") as f:
+    f.write(data.replace('MODEL-NAME', model_name)) #replace the placeholder MODEL-NAME
+    print('score_fixed.py saved')
+
+#Get model
+model = Model(ws, model_name)
+
+#Create conda Dependencies
+conda_packages = ['numpy==1.19.1', "pip==19.2.3"]
+pip_packages = ['azureml-sdk==1.12.0', 'azureml-defaults==1.12.0', 'azureml-monitoring==0.1.0a21' ,'xgboost==1.1.1', 'scikit-learn==0.23.1', 'keras==2.3.1', 'tensorflow==2.0.0']
+conda_deps = CondaDependencies.create(conda_packages=conda_packages, pip_packages=pip_packages)
+myenv = Environment(name='myenv')
+myenv.python.conda_dependencies = conda_deps
+
+inf_config = InferenceConfig(entry_script='score_fixed.py', environment=myenv)
+
+aks_config = AksWebservice.deploy_configuration()
+
+service = Model.deploy(workspace=ws,
+                           name=aks_service_name,
+                           models=[model],
+                           inference_config=inf_config,
+                           deployment_config=aks_config,
+                           deployment_target=aks_target)
+
 service.wait_for_deployment(show_output=True)
 print(service.state)
 

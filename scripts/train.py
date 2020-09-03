@@ -1,7 +1,7 @@
 import argparse
 import json
 import urllib
-
+import pickle
 import os
 import numpy as np
 import pandas as pd
@@ -217,7 +217,10 @@ print("Saving model files...")
 # files saved in the "./outputs" folder are automatically uploaded into run history
 os.makedirs('./outputs/model', exist_ok=True)
 # save model
-joblib.dump(value=model, filename='./outputs/model/model.h5')
+
+### DUMP MODEL OBJECT TO MODEL_PATH ###
+with open('./outputs/model/model.pkl', "wb") as f:
+    pickle.dump(model, f)
 
 # model.save('./outputs/model/model.h5')
 print("model saved in ./outputs/model folder")

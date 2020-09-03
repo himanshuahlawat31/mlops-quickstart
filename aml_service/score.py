@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from keras.models import load_model
+import pickle
 from azureml.core.model import Model
 from azureml.monitoring import ModelDataCollector
 
@@ -9,19 +9,17 @@ def init():
     global model
     global inputs_dc, prediction_dc
     
-    try:
-        model_name = 'MODEL-NAME' # Placeholder model name
-        print('Looking for model path for model: ', model_name)
-        model_path = Model.get_model_path(model_name = model_name)
-        print('Loading model from: ', model_path)
-        model = load_model(model_path)
-        print("Model loaded from disk.")
-        print(model.summary())
+    model_name = 'MODEL-NAME' # Placeholder model name
+    print('Looking for model path for model: ', model_name)
+    model_path = Model.get_model_path(model_name = model_name)
+    print('Loading model from: ', model_path)
+    
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
 
-        inputs_dc = ModelDataCollector("model_telemetry", designation="inputs")
-        prediction_dc = ModelDataCollector("model_telemetry", designation="predictions", feature_names=["prediction"])
-    except Exception as e:
-        print(e)
+    inputs_dc = ModelDataCollector("model_telemetry", designation="inputs")
+    prediction_dc = ModelDataCollector("model_telemetry", designation="predictions", feature_names=["prediction"])
+
         
 # note you can pass in multiple rows for scoring
 def run(raw_data):

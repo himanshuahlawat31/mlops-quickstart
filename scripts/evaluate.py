@@ -117,28 +117,28 @@ with open('score_fixed.py', "w") as f:
     f.write(data.replace('MODEL-NAME', args.model_name)) #replace the placeholder MODEL-NAME
     print('score_fixed.py saved')
 
-# create a Conda dependencies environment file
-print("Creating conda dependencies file locally...")
-conda_packages = ['numpy==1.19.1', "pip==19.2.3"]
-pip_packages = ['azureml-sdk==1.12.0', 'azureml-defaults==1.12.0', 'azureml-monitoring==0.1.0a21' ,'xgboost==1.1.1', 'scikit-learn==0.23.1', 'keras==2.3.1', 'tensorflow==2.0.0']
-mycondaenv = CondaDependencies.create(conda_packages=conda_packages, pip_packages=pip_packages)
+# # create a Conda dependencies environment file
+# print("Creating conda dependencies file locally...")
+# conda_packages = ['numpy==1.19.1', "pip==19.2.3"]
+# pip_packages = ['azureml-sdk==1.12.0', 'azureml-defaults==1.12.0', 'azureml-monitoring==0.1.0a21' ,'xgboost==1.1.1', 'scikit-learn==0.23.1', 'keras==2.3.1', 'tensorflow==2.0.0']
+# mycondaenv = CondaDependencies.create(conda_packages=conda_packages, pip_packages=pip_packages)
 
-conda_file = 'scoring_dependencies.yml'
-with open(conda_file, 'w') as f:
-    f.write(mycondaenv.serialize_to_string())
+# conda_file = 'scoring_dependencies.yml'
+# with open(conda_file, 'w') as f:
+#     f.write(mycondaenv.serialize_to_string())
 
-# create container image configuration
-print("Creating container image configuration...")
-image_config = ContainerImage.image_configuration(execution_script = 'score_fixed.py', 
-                                                  runtime = 'python', conda_file = conda_file)
+# # create container image configuration
+# print("Creating container image configuration...")
+# image_config = ContainerImage.image_configuration(execution_script = 'score_fixed.py', 
+#                                                   runtime = 'python', conda_file = conda_file)
 
-print("Creating image...")
-image = Image.create(name=args.image_name, models=[latest_model], image_config=image_config, workspace=ws)
+# print("Creating image...")
+# image = Image.create(name=args.image_name, models=[latest_model], image_config=image_config, workspace=ws)
 
-# wait for image creation to finish
-image.wait_for_creation(show_output=True)
+# # wait for image creation to finish
+# image.wait_for_creation(show_output=True)
 
-eval_info["image_id"] = image.id
+# eval_info["image_id"] = image.id
 
 with open(eval_filepath, "w") as f:
     json.dump(eval_info, f)
