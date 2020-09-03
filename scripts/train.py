@@ -222,7 +222,6 @@ os.makedirs('./outputs/model', exist_ok=True)
 with open('./outputs/model/model.pkl', "wb") as f:
     pickle.dump(model, f)
 
-# model.save('./outputs/model/model.h5')
 print("model saved in ./outputs/model folder")
 print("Saving model files completed.")
 
@@ -250,7 +249,7 @@ os.chdir("./outputs/model")
 
 model_description = 'XGBboost model to classify the descriptions of car components as compliant or non-compliant.'
 model = Model.register(
-    model_path='model.h5',  # this points to a local file
+    model_path='model.pkl',  # this points to a local file
     model_name=args.model_name,  # this is the name the model is registered as
     tags={"type": "classification", "run_id": run.id, "build_number": args.build_number},
     description=model_description,

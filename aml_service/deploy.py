@@ -39,8 +39,6 @@ model_path = eval_info["model_path"]
 model_acc = eval_info["model_acc"]
 deployed_model_acc = eval_info["deployed_model_acc"]
 deploy_model = eval_info["deploy_model"]
-# image_name = eval_info["image_name"]
-# image_id = eval_info["image_id"]
 
 if deploy_model == False:
     print('Model metric did not meet the metric threshold criteria and will not be deployed!')
@@ -69,8 +67,6 @@ print('get workspace...')
 ws = Workspace.from_config(auth=cli_auth)
 print('done getting workspace!')
 
-#image = Image(ws, id = image_id)
-print(image)
 
 aks_name = args.aks_name 
 aks_region = args.aks_region
@@ -98,16 +94,6 @@ if aks_target == None:
     print(aks_target.provisioning_errors)
     
 print("Creating new webservice")
-# Create the web service configuration (using defaults)
-# aks_config = AksWebservice.deploy_configuration(description = args.description, 
-#                                                 tags = {'name': aks_name, 'image_id': image.id})
-# service = Webservice.deploy_from_image(
-#     workspace=ws,
-#     name=aks_service_name,
-#     image=image,
-#     deployment_config=aks_config,
-#     deployment_target=aks_target
-# )
 
 score_path = 'score_fixed.py'
 print('Updating scoring file with the correct model name')
