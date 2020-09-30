@@ -1,0 +1,29 @@
+# CI/PR Pipeline that deploys an ARM template to create or update the resources needed by the other pipelines.
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - environment_setup/*
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  - group: quickstart-variablegroup
+  - name: WORKSPACE_SKU # https://docs.microsoft.com/en-us/azure/machine-learning/overview-what-is-azure-ml#sku
+    value: basic
+
+steps:
+  - task: AzureResourceGroupDeployment@2
+    inputs:
+      azureSubscription: 'quick-starts-sc-rg'
+      action: "Create Or Update Resource Group"
+      resourceGroupName: "$(RESOURCE_GROUP)"
+      location: $(LOCATION)
+      templateLocation: "Linked artifact"
+      csmFile: "$(Build.SourcesDirectory)/environment_setup/cloud-environment.json"
+      overrideParameters: "-baseName $(BASE_NAME) -location $(LOCATION) -workspace $(WORKSPACE_NAME) -sku $(WORKSPACE_SKU)"
+      deploymentMode: "Incremental"
+    displayName: "Deploy MLOps resources to Azure"  

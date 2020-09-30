@@ -67,7 +67,6 @@ print('get workspace...')
 ws = Workspace.from_config(auth=cli_auth)
 print('done getting workspace!')
 
-
 aks_name = args.aks_name 
 aks_region = args.aks_region
 aks_service_name = args.service_name
