@@ -1,7 +1,7 @@
 import argparse
 import os
 import azureml.core
-from azureml.core import Workspace, Experiment, Datastore
+from azureml.core import Workspace, Experiment
 from azureml.data.azure_storage_datastore import AzureBlobDatastore
 from azureml.core.compute import AmlCompute
 from azureml.core.compute import ComputeTarget

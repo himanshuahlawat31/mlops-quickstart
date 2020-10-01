@@ -1,6 +1,6 @@
 import argparse
 import azureml.core
-from azureml.core import Workspace, Experiment, Run
+from azureml.core import Workspace
 from azureml.core.compute import AmlCompute, ComputeTarget
 from azureml.core.compute_target import ComputeTargetException
 from azureml.core.authentication import AzureCliAuthentication
