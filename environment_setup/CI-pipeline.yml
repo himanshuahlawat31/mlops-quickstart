@@ -1,0 +1,40 @@
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - environment_setup/*
+
+
+
+trigger:
+  branches:
+    include:
+        - master
+ paths:
+        include:
+          - environment_setup/*
+          
+pool:
+    vmImage: 'ubuntu-latest'
+
+
+  
+### USE PYTHON ###
+steps:
+- task: UsePythonVersion@0
+displayName: 'Use Python 3.x'
+
+### INSTALL PACKAGES ###
+- bash: |
+    python -m pip install --upgrade pip 
+    python -m pip install -r ${{'environment_setup/requirements.txt'}}
+displayName: 'Install Packages'
+
+### CODE QUALITY CHECK ###
+- script: |
+    pip install flake8
+    pip install flake8_formatter_junit_xml
+    echo Build:: $(Build.SourcesDirectory)
+displayName: 'Check code quality'
