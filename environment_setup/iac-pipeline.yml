@@ -26,4 +26,4 @@ steps:
       csmFile: "$(Build.SourcesDirectory)/environment_setup/cloud-environment.json"
       overrideParameters: "-baseName $(BASE_NAME) -location $(LOCATION) -workspace $(WORKSPACE_NAME) -sku $(WORKSPACE_SKU)"
       deploymentMode: "Incremental"
-    displayName: "Deploy MLOps resources on Azure"  
+    displayName: "Deploy MLOps resources to Azure"  
