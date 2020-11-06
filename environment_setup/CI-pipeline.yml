@@ -12,6 +12,8 @@ pool:
 steps:
 - task: UsePythonVersion@0
   displayName: 'Use Python 3.x'
+  inputs:
+    versionSpec: 3.6
 
 ### INSTALL PACKAGES ###
 - bash: |
