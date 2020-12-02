@@ -20,11 +20,31 @@ print("Pipeline SDK-specific imports completed")
 print("Azure ML SDK version:", azureml.core.VERSION)
 
 parser = argparse.ArgumentParser("pipelines_master")
-parser.add_argument("--aml_compute_target", type=str, help="compute target name", dest="aml_compute_target", required=True)
-parser.add_argument("--model_name", type=str, help="model name", dest="model_name", required=True)
-parser.add_argument("--build_number", type=str, help="build number", dest="build_number", required=True)
-parser.add_argument("--image_name", type=str, help="image name", dest="image_name", required=True)
-parser.add_argument("--path", type=str, help="path", dest="path", required=True)
+parser.add_argument("--aml_compute_target",
+                    type=str,
+                    help="compute target name",
+                    dest="aml_compute_target",
+                    required=True)
+parser.add_argument("--model_name",
+                    type=str,
+                    help="model name",
+                    dest="model_name",
+                    required=True)
+parser.add_argument("--build_number",
+                    type=str,
+                    help="build number",
+                    dest="build_number",
+                    required=True)
+parser.add_argument("--image_name",
+                    type=str,
+                    help="image name",
+                    dest="image_name",
+                    required=True)
+parser.add_argument("--path",
+                    type=str,
+                    help="path",
+                    dest="path",
+                    required=True)
 args = parser.parse_args()
 
 print("Argument 1: %s" % args.aml_compute_target)
@@ -48,7 +68,7 @@ print("found existing compute target.")
 # Create a new runconfig object
 run_amlcompute = RunConfiguration()
 
-# Use the cpu_cluster you created above. 
+# Use the cpu_cluster you created above.
 run_amlcompute.target = args.aml_compute_target
 
 # Enable Docker
@@ -64,18 +84,13 @@ run_amlcompute.environment.python.user_managed_dependencies = False
 run_amlcompute.auto_prepare_environment = True
 
 # Specify CondaDependencies obj, add necessary packages
-run_amlcompute.environment.python.conda_dependencies = CondaDependencies.create(pip_packages=[
-    'numpy==1.19.1',
-    'pandas==1.1.0',
-    'tensorflow==2.0.0',
-    'keras==2.3.1',
-    'xgboost==1.1.1',
-    'scikit-learn==0.23.1',
-    'keras==2.3.1',
-    'azureml-sdk==1.11.0',
-    'azureml-dataprep[pandas]==2.0.7',
-    'azureml-core==1.11.0.post1'
-])
+run_amlcompute.environment.python.conda_dependencies = CondaDependencies.create(
+    pip_packages=[
+        'numpy==1.19.1', 'pandas==1.1.0', 'tensorflow==2.0.0', 'keras==2.3.1',
+        'xgboost==1.1.1', 'scikit-learn==0.23.1', 'keras==2.3.1',
+        'azureml-sdk==1.11.0', 'azureml-dataprep[pandas]==2.0.7',
+        'azureml-core==1.11.0.post1'
+    ])
 
 scripts_folder = 'scripts'
 def_blob_store = ws.get_default_datastore()
@@ -83,38 +98,38 @@ def_blob_store = ws.get_default_datastore()
 train_output = PipelineData('train_output', datastore=def_blob_store)
 print("train_output PipelineData object created")
 
-trainStep = PythonScriptStep(
-    name="train",
-    script_name="train.py", 
-    arguments=["--model_name", args.model_name,
-              "--build_number", args.build_number],
-    compute_target=aml_compute,
-    runconfig=run_amlcompute,
-    source_directory=scripts_folder,
-    allow_reuse=False
-)
+trainStep = PythonScriptStep(name="train",
+                             script_name="train.py",
+                             arguments=[
+                                 "--model_name", args.model_name,
+                                 "--build_number", args.build_number
+                             ],
+                             compute_target=aml_compute,
+                             runconfig=run_amlcompute,
+                             source_directory=scripts_folder,
+                             allow_reuse=False)
 print("trainStep created")
 
 evaluate_output = PipelineData('evaluate_output', datastore=def_blob_store)
 
-evaluateStep = PythonScriptStep(
-    name="evaluate",
-    script_name="evaluate.py", 
-    arguments=["--model_name", args.model_name,  
-               "--image_name", args.image_name, 
-               "--output", evaluate_output],
-    outputs=[evaluate_output],
-    compute_target=aml_compute,
-    runconfig=run_amlcompute,
-    source_directory=scripts_folder,
-    allow_reuse=False
-)
+evaluateStep = PythonScriptStep(name="evaluate",
+                                script_name="evaluate.py",
+                                arguments=[
+                                    "--model_name", args.model_name,
+                                    "--image_name", args.image_name,
+                                    "--output", evaluate_output
+                                ],
+                                outputs=[evaluate_output],
+                                compute_target=aml_compute,
+                                runconfig=run_amlcompute,
+                                source_directory=scripts_folder,
+                                allow_reuse=False)
 print("evaluateStep created")
 
 evaluateStep.run_after(trainStep)
 steps = [evaluateStep]
 pipeline = Pipeline(workspace=ws, steps=steps)
-print ("Pipeline is built")
+print("Pipeline is built")
 
 pipeline.validate()
 print("Simple validation complete")
@@ -128,6 +143,14 @@ pipeline_run.wait_for_completion(show_output=True, timeout_seconds=43200)
 print("Downloading evaluation results...")
 # access the evaluate_output
 step_run = pipeline_run.find_step_run("evaluate")[0]
+
+pipeline_run_id = pipeline_run.id
+step_run_id = step_run.id
+node_id = pipeline_run.get_graph().node_name_dict['evaluate'][0].node_id
+print('Pipeline Run ID: {} Step Run ID: {}, Step Run Node ID: {}'.format(
+    pipeline_run_id, step_run_id, node_id))
+step_run = StepRun(pipeline_exp, step_run_id, pipeline_run_id, node_id)
+
 data = step_run.get_output_data("evaluate_output")
 
 # download the predictions to local path
