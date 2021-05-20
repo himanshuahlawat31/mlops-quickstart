@@ -11,6 +11,5 @@ dependencies:
 - python=3.6
 
 - pip:
-  - azureml-sdk==1.11.0
+  - azureml-sdk==1.27.0
   - azure-cli==2.4.0
-  - azureml-core==1.11.0.post1
